@@ -1,0 +1,3 @@
+# FinLens
+
+Initial repository setup.
