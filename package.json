@@ -1,0 +1,27 @@
+{
+  "name": "finlens-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "worker:install": "npm --prefix worker install",
+    "worker:check": "npm --prefix worker run typecheck",
+    "worker:deploy": "npm --prefix worker run deploy"
+  },
+  "dependencies": {
+    "firebase": "12.17.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@vitejs/plugin-react": "6.1.0",
+    "typescript": "^5.9.3",
+    "vite": "8.2.2"
+  }
+}

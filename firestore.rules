@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function owns(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function validProfile() {
+      return request.resource.data.keys().hasOnly([
+          'initialized', 'openingCash', 'monthlyBudget', 'currency',
+          'displayName', 'updatedAt'
+        ])
+        && request.resource.data.initialized is bool
+        && request.resource.data.openingCash is number
+        && request.resource.data.openingCash >= 0
+        && request.resource.data.monthlyBudget is number
+        && request.resource.data.monthlyBudget >= 0
+        && request.resource.data.currency == 'INR'
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() <= 120;
+    }
+
+    match /users/{uid}/profile/main {
+      allow read: if owns(uid);
+      allow create, update: if owns(uid) && validProfile();
+      allow delete: if false;
+    }
+
+    // FinLens is a personal ledger. Each signed-in user can only access their own subtree.
+    // Smart Entry validation happens in the app before these writes. A user can only alter
+    // their own records; no cross-user data access is permitted.
+    match /users/{uid}/{document=**} {
+      allow read, create, update, delete: if owns(uid);
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
