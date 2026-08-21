@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut, type User } from 'firebase/auth';
 import { Logo } from './components/Logo';
 import { Dashboard } from './pages/Dashboard';
 import { Expenses } from './pages/Expenses';
@@ -28,15 +28,77 @@ function LoadingScreen() {
 }
 
 function SignInScreen() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  async function login() {
-    setBusy(true); setError('');
-    try { await signInWithPopup(auth, googleProvider); }
-    catch (e) { setError(e instanceof Error ? e.message : 'Sign-in failed.'); }
-    finally { setBusy(false); }
+
+  async function loginWithEmail(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError('');
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Email sign-in failed.');
+    } finally {
+      setBusy(false);
+    }
   }
-  return <div className="auth-shell"><div className="auth-card"><Logo large /><h1>Your complete financial view, in one place.</h1><p>Track spending, investments, insurance and debt. Smart Entry updates every linked section from a single transaction.</p><button className="primary-button" onClick={login} disabled={busy}>{busy ? 'Signing in…' : 'Continue with Google'}</button>{error ? <div className="error-box">{error}</div> : null}<small>Your financial data is stored under your signed-in Firebase account.</small></div></div>;
+
+  async function loginWithGoogle() {
+    setBusy(true);
+    setError('');
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Google sign-in failed.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="auth-shell">
+      <form className="auth-card onboarding" onSubmit={loginWithEmail}>
+        <Logo large />
+        <h1>Your complete financial view, in one place.</h1>
+        <p>Sign in with your Google account or use an email-and-password account. Each Firebase account keeps its own separate FinLens data.</p>
+
+        <label>
+          Email
+          <input
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="name@example.com"
+            required
+          />
+        </label>
+        <label>
+          Password
+          <input
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter password"
+            required
+          />
+        </label>
+        <button className="primary-button" type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in with Email'}</button>
+
+        <small>or</small>
+        <button className="ghost-button" type="button" onClick={loginWithGoogle} disabled={busy} style={{ width: '100%', height: 48, marginTop: 12 }}>
+          Continue with Google
+        </button>
+
+        {error ? <div className="error-box" style={{ marginTop: 16 }}>{error}</div> : null}
+        <small>Your financial data is stored under your signed-in Firebase account and is separated by account.</small>
+      </form>
+    </div>
+  );
 }
 
 function Onboarding({ user }: { user: User }) {
