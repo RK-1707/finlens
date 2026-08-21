@@ -73,7 +73,6 @@ async function callGemini(env: Env, prompt: string, jsonMode = false): Promise<s
   const body: Json = {
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: {
-      temperature: jsonMode ? 0 : 0.2,
       maxOutputTokens: jsonMode ? 2048 : 1400,
       ...(jsonMode ? { responseMimeType: 'application/json' } : {}),
     },
